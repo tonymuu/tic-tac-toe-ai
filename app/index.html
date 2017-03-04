@@ -1,0 +1,42 @@
+<html ng-app="tictactoeApp">
+  <head>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  </head>
+
+  <body ng-controller="TictactoeController">
+    <h1>Tic Tac Toe!</h1>
+    <div class="container">
+      <div class="col-md-6">
+        <div class="well">
+          <div ng-repeat="i in [0,1,2]">
+            <div class="col-md-4"></div>
+            <button type="button" class="btn btn-lg btn-primary" ng-class="{ 'btn-danger': !isEmpty(cells[i][j]) }" ng-repeat="j in [0,1,2]" ng-click="move(cells[i][j])" ng-disabled="!isEmpty(cells[i][j]) || !inProgress">{{ cells[i][j].state }}</button>
+            <!-- <div class="col-md-4"></div> -->
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <p id="error">
+          {{ error }}
+        </p>
+        <p>
+          Computer Level:
+        </p>
+        <select ng-model="level.selected" >
+          <option ng-repeat="option in level.available" value="{{ option }}">{{ option }}</option>
+        </select>
+        <p>
+          Pick a Side (X Goes First)
+        </p>
+
+        <button class="btn btn-success" ng-click="restart()">Retry</button>
+
+      </div>
+    </div>
+    <script src="app.js"></script>
+    <!-- <script src="game.js"></script> -->
+  </body>
+</html>
