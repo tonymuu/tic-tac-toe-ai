@@ -3,6 +3,9 @@ var tictactoeApp = angular.module('tictactoeApp', []);
 tictactoeApp.controller('TictactoeController', function TictactoeController($scope) {
   $scope.error = "";
   $scope.human = null;
+  $scope.win = 0;
+  $scope.draw = 0;
+  $scope.total = 0;
   // $scope.game = new Game();
   var generateEmptyCells = function() {
     var _cells = [];
@@ -21,6 +24,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
   $scope.restart = function() {
     $scope.inProgress = true;
     $scope.cells = generateEmptyCells();
+    $scope.turn = CellState.X;
     if ($scope.human === CellState.O) aiMove();
   };
 
@@ -72,10 +76,21 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
     cell.state = $scope.turn;
     switchTurn();
     var winner = hasWinner();
-    if (winner !== null) $scope.inProgress = false;
+    if (winner !== null) {
+      $scope.inProgress = false;
+      $scope.win += winner.state === $scope.human ? 1 : 0;
+      $scope.draw += winner.state === "draw" ? 1 : 0;
+      $scope.total += 1;
+    }
     else {
       aiMove();
-      if (hasWinner() !== null) $scope.inProgress = false;
+      winner = hasWinner();
+      if (winner !== null) {
+        $scope.inProgress = false;
+        $scope.win += winner.state == $scope.human ? 1 : 0;
+        $scope.draw += winner.state === "draw" ? 1 : 0;
+        $scope.total += 1;
+      }
     }
   };
 
