@@ -2,6 +2,7 @@ var tictactoeApp = angular.module('tictactoeApp', []);
 
 tictactoeApp.controller('TictactoeController', function TictactoeController($scope) {
   $scope.error = "";
+  $scope.human = null;
   // $scope.game = new Game();
   var generateEmptyCells = function() {
     var _cells = [];
@@ -20,6 +21,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
   $scope.restart = function() {
     $scope.inProgress = true;
     $scope.cells = generateEmptyCells();
+    if ($scope.human === CellState.O) aiMove();
   };
 
   // X goes first
@@ -72,13 +74,17 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
     var winner = hasWinner();
     if (winner !== null) $scope.inProgress = false;
     else {
-      switch($scope.level.selected) {
-        case $scope.level.available.level0: takeLevel0Move(); break;
-        case $scope.level.available.level1: if (!takeLevel1Move()) takeLevel0Move(); break;
-        case $scope.level.available.level2: takeLevel2Move(); break;
-        default: $scope.error = "must select something!"
-      }
+      aiMove();
       if (hasWinner() !== null) $scope.inProgress = false;
+    }
+  };
+
+  var aiMove = function() {
+    switch($scope.level.selected) {
+      case $scope.level.available.level0: takeLevel0Move(); break;
+      case $scope.level.available.level1: if (!takeLevel1Move()) takeLevel0Move(); break;
+      case $scope.level.available.level2: takeLevel2Move(); break;
+      default: $scope.error = "must select something!"
     }
   };
 
@@ -327,11 +333,11 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
 
   var switchTurn = function() {
     $scope.turn = $scope.turn === CellState.X ? CellState.O : CellState.X;
-  }
+  };
 
   var takeMove = function(y, x) {
     $scope.cells[y][x].state = $scope.turn;
-  }
+  };
 
 });
 
