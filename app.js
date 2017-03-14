@@ -7,6 +7,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
   $scope.draw = 0;
   $scope.total = 0;
   // $scope.game = new Game();
+  var numberOfSteps = 0;
   var generateEmptyCells = function() {
     var _cells = [];
     for (var i = 0; i < 3; i += 1) {
@@ -25,6 +26,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
     $scope.inProgress = true;
     $scope.cells = generateEmptyCells();
     $scope.turn = CellState.X;
+    numberOfSteps = 0;
     if ($scope.human === CellState.O) aiMove();
   };
 
@@ -32,12 +34,13 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
   $scope.turn = CellState.X;
   $scope.inProgress = true;
   $scope.level = {
-      selected: null,
       available: {
         level0: 'Level 0 - Random Move',
         level1: 'Level 1 - Winning Move',
-        level2: 'Level 2 - Winning Move + Loss Prevention'
-      }
+        level2: 'Level 2 - Winning Move + Loss Prevention',
+        level3: 'Level 3 - Perfect Move'
+      },
+      selected: null
     };
 
   var hasWinner = function() {
@@ -45,39 +48,51 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       // check horizontal
       if ($scope.cells[i][0].state === $scope.cells[i][1].state &&
          $scope.cells[i][1].state === $scope.cells[i][2].state &&
-         $scope.cells[i][1].state !== CellState.Empty)
-        return $scope.cells[i][0];
+         $scope.cells[i][1].state !== CellState.Empty) {
+           $scope.inProgress = false;
+           return $scope.cells[i][0];
+         }
       // check vertical
       if ($scope.cells[0][i].state === $scope.cells[1][i].state &&
          $scope.cells[1][i].state === $scope.cells[2][i].state &&
-         $scope.cells[1][i].state !== CellState.Empty)
-        return $scope.cells[0][i];
+         $scope.cells[1][i].state !== CellState.Empty) {
+           $scope.inProgress = false;
+           return $scope.cells[0][i];
+         }
     }
     // check two diaganos
     if ($scope.cells[1][1].state === $scope.cells[0][0].state &&
        $scope.cells[1][1].state === $scope.cells[2][2].state &&
-       $scope.cells[0][0].state !== CellState.Empty)
-      return $scope.cells[1][1];
+       $scope.cells[0][0].state !== CellState.Empty) {
+         $scope.inProgress = false;
+         return $scope.cells[1][1];
+       }
     if ($scope.cells[1][1].state === $scope.cells[0][2].state &&
        $scope.cells[1][1].state === $scope.cells[2][0].state &&
        $scope.cells[2][0].state !== CellState.Empty) {
-      return $scope.cells[1][1];
-    }
+         $scope.inProgress = false;
+         return $scope.cells[1][1];
+       }
+
 
     for (row of $scope.cells) {
       for (cell of row)
-        if (cell.state == CellState.Empty) { return null; console.log("HasEmpty");}
+        if (cell.state === CellState.Empty) {
+          $scope.inProgress = true;
+          return null;
+        }
     }
 
+    $scope.inProgress = false;
     return "draw";
   };
 
   $scope.move = function(cell) {
     cell.state = $scope.turn;
     switchTurn();
+    numberOfSteps += 1;
     var winner = hasWinner();
     if (winner !== null) {
-      $scope.inProgress = false;
       $scope.win += winner.state === $scope.human ? 1 : 0;
       $scope.draw += winner.state === "draw" ? 1 : 0;
       $scope.total += 1;
@@ -86,7 +101,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       aiMove();
       winner = hasWinner();
       if (winner !== null) {
-        $scope.inProgress = false;
         $scope.win += winner.state == $scope.human ? 1 : 0;
         $scope.draw += winner.state === "draw" ? 1 : 0;
         $scope.total += 1;
@@ -99,6 +113,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       case $scope.level.available.level0: takeLevel0Move(); break;
       case $scope.level.available.level1: if (!takeLevel1Move()) takeLevel0Move(); break;
       case $scope.level.available.level2: takeLevel2Move(); break;
+      case $scope.level.available.level3: takeLevel3Move(); break;
       default: $scope.error = "must select something!"
     }
   };
@@ -114,7 +129,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       y = Math.floor(Math.random() * 3);
     } while ($scope.cells[y][x].state !== CellState.Empty);
     takeMove(y, x);
-    switchTurn();
   };
 
   var takeLevel1Move = function() {
@@ -126,7 +140,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[i][2].state === CellState.Empty)
         {
           takeMove(i, 2);
-          switchTurn();
           return true;
         }
       // last two
@@ -134,7 +147,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[i][1].state === $scope.cells[i][2].state &&
         $scope.cells[i][0].state === CellState.Empty) {
           takeMove(i, 0);
-          switchTurn();
           return true;
         }
       // middle one
@@ -142,7 +154,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[i][0].state === $scope.cells[i][2].state &&
         $scope.cells[i][1].state === CellState.Empty) {
           takeMove(i, 1);
-          switchTurn();
           return true;
         }
 
@@ -152,7 +163,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[0][i].state === $scope.cells[1][i].state &&
         $scope.cells[2][i].state === CellState.Empty) {
           takeMove(2, i);
-          switchTurn();
           return true;
         }
       // last two
@@ -160,7 +170,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[1][i].state === $scope.cells[2][i].state &&
         $scope.cells[0][i].state === CellState.Empty) {
           takeMove(0, i);
-          switchTurn();
           return true;
         }
       // middle one
@@ -168,7 +177,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[0][i].state === $scope.cells[2][i].state &&
         $scope.cells[1][i].state === CellState.Empty) {
           takeMove(1, i);
-          switchTurn();
           return true;
         }
     }
@@ -178,7 +186,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
        $scope.cells[1][1].state === $scope.cells[0][0].state &&
        $scope.cells[2][2].state === CellState.Empty) {
          takeMove(2, 2);
-         switchTurn();
          return true;
        }
 
@@ -186,7 +193,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[1][1].state === $scope.cells[2][2].state &&
       $scope.cells[0][0].state === CellState.Empty) {
         takeMove(0, 0);
-        switchTurn();
         return true;
       }
 
@@ -194,7 +200,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
        $scope.cells[2][2].state === $scope.cells[0][0].state &&
        $scope.cells[1][1].state === CellState.Empty) {
          takeMove(1, 1);
-         switchTurn();
          return true;
        }
 
@@ -203,7 +208,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[1][1].state === $scope.cells[0][2].state &&
       $scope.cells[2][0].state === CellState.Empty) {
         takeMove(2, 0);
-        switchTurn();
         return true;
       }
 
@@ -211,7 +215,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[1][1].state === $scope.cells[2][0].state &&
       $scope.cells[0][2].state === CellState.Empty) {
         takeMove(0, 2);
-        switchTurn();
         return true;
       }
 
@@ -219,7 +222,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[2][0].state === $scope.cells[0][2].state &&
       $scope.cells[1][1].state === CellState.Empty) {
         takeMove(1, 1);
-        switchTurn();
         return true;
       }
     return false;
@@ -236,7 +238,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[i][2].state === CellState.Empty)
         {
           takeMove(i, 2);
-          switchTurn();
           return true;
         }
       // last two
@@ -245,7 +246,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[i][1].state === $scope.cells[i][2].state &&
         $scope.cells[i][0].state === CellState.Empty) {
           takeMove(i, 0);
-          switchTurn();
           return true;
         }
       // middle one
@@ -254,7 +254,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[i][0].state === $scope.cells[i][2].state &&
         $scope.cells[i][1].state === CellState.Empty) {
           takeMove(i, 1);
-          switchTurn();
           return true;
         }
 
@@ -265,7 +264,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[0][i].state === $scope.cells[1][i].state &&
         $scope.cells[2][i].state === CellState.Empty) {
           takeMove(2, i);
-          switchTurn();
           return true;
         }
       // last two
@@ -274,7 +272,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[1][i].state === $scope.cells[2][i].state &&
         $scope.cells[0][i].state === CellState.Empty) {
           takeMove(0, i);
-          switchTurn();
           return true;
         }
       // middle one
@@ -283,7 +280,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         $scope.cells[0][i].state === $scope.cells[2][i].state &&
         $scope.cells[1][i].state === CellState.Empty) {
           takeMove(1, i);
-          switchTurn();
           return true;
         }
     }
@@ -294,7 +290,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
        $scope.cells[1][1].state === $scope.cells[0][0].state &&
        $scope.cells[2][2].state === CellState.Empty) {
          takeMove(2, 2);
-         switchTurn();
          return true;
        }
 
@@ -303,7 +298,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[1][1].state === $scope.cells[2][2].state &&
       $scope.cells[0][0].state === CellState.Empty) {
         takeMove(0, 0);
-        switchTurn();
         return true;
       }
 
@@ -312,7 +306,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
        $scope.cells[2][2].state === $scope.cells[0][0].state &&
        $scope.cells[1][1].state === CellState.Empty) {
          takeMove(1, 1);
-         switchTurn();
          return true;
        }
 
@@ -322,7 +315,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[1][1].state === $scope.cells[0][2].state &&
       $scope.cells[2][0].state === CellState.Empty) {
         takeMove(2, 0);
-        switchTurn();
         return true;
       }
 
@@ -331,7 +323,6 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[1][1].state === $scope.cells[2][0].state &&
       $scope.cells[0][2].state === CellState.Empty) {
         takeMove(0, 2);
-        switchTurn();
         return true;
       }
 
@@ -340,11 +331,69 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
       $scope.cells[2][0].state === $scope.cells[0][2].state &&
       $scope.cells[1][1].state === CellState.Empty) {
         takeMove(1, 1);
-        switchTurn();
         return true;
       }
     return takeLevel0Move();
   };
+
+  var takeLevel3Move = function() {
+    var moves = [];
+    for (var i = 0; i < 3; i += 1) {
+      for (var j = 0; j < 3; j += 1) {
+        if ($scope.cells[i][j].state === CellState.Empty) {
+          takeMove(i, j);
+          var score = minimax();
+          moves.push(new Move(i, j, score));
+          takeMoveBack(i, j);
+        }
+      }
+    }
+    var move = moves[0];
+    if($scope.turn === CellState.X)
+      moves.forEach(function(curr) {
+        if (move.minimaxValue < curr.minimaxValue) move = curr;
+      });
+    else
+      moves.forEach(function(curr) {
+        if (move.minimaxValue > curr.minimaxValue) move = curr;
+      });
+
+    console.log(move);
+    takeMove(move.y, move.x);
+  }
+
+  var minimax = function() {
+    /*
+      if game ends, return score
+      scan each cell and play if cell is empty, then call this function with the new state
+    */
+    // if (numberOfSteps > 0) switchTurn();
+    if (hasWinner() !== null) return getScore();
+    var score;
+    if ($scope.turn === CellState.X) score = -1000;
+    else score = 1000;
+    for (var i = 0; i < 3; i += 1) {
+      for (var j = 0; j < 3; j += 1) {
+        if ($scope.cells[i][j].state === CellState.Empty) {
+          takeMove(i, j);
+          var newScore = minimax();
+          if ($scope.turn === CellState.X) score = Math.min(score, newScore)
+          else score = Math.max(score, newScore)
+          takeMoveBack(i, j);
+        }
+      }
+    }
+    return score;
+  };
+
+  var getScore = function() {
+    var winner = hasWinner();
+    if (winner !== null) {
+      if (winner.state === CellState.X) return (-10 + numberOfSteps);
+      else if (winner.state === CellState.O) return (10 - numberOfSteps);
+      else return 0;
+    }
+  }
 
   var switchTurn = function() {
     $scope.turn = $scope.turn === CellState.X ? CellState.O : CellState.X;
@@ -352,6 +401,16 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
 
   var takeMove = function(y, x) {
     $scope.cells[y][x].state = $scope.turn;
+    hasWinner();
+    switchTurn();
+    numberOfSteps += 1;
+  };
+
+  var takeMoveBack = function(y, x) {
+    $scope.cells[y][x].state = CellState.Empty;
+    hasWinner();
+    switchTurn();
+    numberOfSteps -= 1;
   };
 
 });
@@ -360,4 +419,10 @@ var CellState = {
   X: 'x',
   O: 'o',
   Empty: '.'
+}
+
+var Move = function(x, y, minimaxValue) {
+  this.x = x;
+  this.y = y;
+  this.minimaxValue = minimaxValue;
 }

@@ -2,3 +2,7 @@
   text-align: center;
   margin: 2%;
 }
+
+#error {
+  color: red;
+}
