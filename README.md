@@ -5,9 +5,7 @@ A tic-tac-toe game with Minimax algorithm
 https://tonymuu.github.io/tic-tac-toe-ai/
 
 # Installation
-1. gitclone https://github.com/tonymuu/tic-tac-toe-ai.git, or download the zip and uncompress
+1. Run `git clone` https://github.com/tonymuu/tic-tac-toe-ai.git in a command line setting, or download the zip and uncompress
 2. Navigate to project root
-3. npm install
-4. npm start, and go to localhost:8000 in browser.
-
-
+3. Run `npm install` to install all the required dependencies
+4. Run `npm start`, and [click here](localhost:8000) or go to [localhost:8000] in browser.
