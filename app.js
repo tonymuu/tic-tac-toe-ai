@@ -89,6 +89,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
   };
 
   $scope.move = function(cell) {
+    counter = 0;
     cell.state = $scope.turn;
     switchTurn();
     numberOfSteps += 1;
@@ -351,20 +352,20 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
     }
     var move = moves[0];
     console.log(moves);
-    moves.forEach(function(curr) {
-      if (move.minimaxValue < curr.minimaxValue) move = curr;
-    });
-
-    // if($scope.turn === CellState.X) {
-    //   moves.forEach(function(curr) {
-    //     if (move.minimaxValue < curr.minimaxValue) move = curr;
-    //   });
-    // }
-    // else {
-    //   moves.forEach(function(curr) {
-    //     if (move.minimaxValue > curr.minimaxValue) move = curr;
-    //   });
-    // }
+    // moves.forEach(function(curr) {
+    //   if (move.minimaxValue < curr.minimaxValue) move = curr;
+    // });
+    console.log("Computer's turn is: " + $scope.turn);
+    if($scope.turn === CellState.X) {
+      moves.forEach(function(curr) {
+        if (move.minimaxValue > curr.minimaxValue) move = curr;
+      });
+    }
+    else {
+      moves.forEach(function(curr) {
+        if (move.minimaxValue < curr.minimaxValue) move = curr;
+      });
+    }
     console.log(move);
     console.log("Recursion stack: " + counter);
     takeMove(move.y, move.x);
