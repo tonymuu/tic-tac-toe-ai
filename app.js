@@ -6,6 +6,7 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
   $scope.win = 0;
   $scope.draw = 0;
   $scope.total = 0;
+  var counter = 0;
   // $scope.game = new Game();
   var numberOfSteps = 0;
   var generateEmptyCells = function() {
@@ -112,8 +113,8 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
     switch($scope.level.selected) {
       case $scope.level.available.level0: takeLevel0Move(); break;
       case $scope.level.available.level1: if (!takeLevel1Move()) takeLevel0Move(); break;
-      case $scope.level.available.level2: takeLevel2Move(); break;
-      case $scope.level.available.level3: takeLevel3Move(); break;
+      case $scope.level.available.level2: if (!takeLevel2Move()) takeLevel0Move(); break;
+      case $scope.level.available.level3: if (!takeLevel2Move()) takeLevel3Move(); break;
       default: $scope.error = "must select something!"
     }
   };
@@ -333,66 +334,78 @@ tictactoeApp.controller('TictactoeController', function TictactoeController($sco
         takeMove(1, 1);
         return true;
       }
-    return takeLevel0Move();
+    return false;
   };
 
   var takeLevel3Move = function() {
     var moves = [];
-    for (var i = 0; i < 3; i += 1) {
-      for (var j = 0; j < 3; j += 1) {
-        if ($scope.cells[i][j].state === CellState.Empty) {
-          takeMove(i, j);
-          var score = minimax();
-          moves.push(new Move(i, j, score));
-          takeMoveBack(i, j);
+    for (var y = 0; y < 3; y += 1) {
+      for (var x = 0; x < 3; x += 1) {
+        if ($scope.cells[y][x].state === CellState.Empty) {
+          //takeMove(y, x);
+          var score = minimax(y, x, $scope.turn);
+          moves.push(new Move(y, x, score));
+          // takeMoveBack(y, x);
         }
       }
     }
     var move = moves[0];
-    if($scope.turn === CellState.X)
-      moves.forEach(function(curr) {
-        if (move.minimaxValue < curr.minimaxValue) move = curr;
-      });
-    else
-      moves.forEach(function(curr) {
-        if (move.minimaxValue > curr.minimaxValue) move = curr;
-      });
+    console.log(moves);
+    moves.forEach(function(curr) {
+      if (move.minimaxValue < curr.minimaxValue) move = curr;
+    });
 
+    // if($scope.turn === CellState.X) {
+    //   moves.forEach(function(curr) {
+    //     if (move.minimaxValue < curr.minimaxValue) move = curr;
+    //   });
+    // }
+    // else {
+    //   moves.forEach(function(curr) {
+    //     if (move.minimaxValue > curr.minimaxValue) move = curr;
+    //   });
+    // }
     console.log(move);
+    console.log("Recursion stack: " + counter);
     takeMove(move.y, move.x);
   }
 
-  var minimax = function() {
+  var minimax = function(y, x, turn) {
     /*
       if game ends, return score
       scan each cell and play if cell is empty, then call this function with the new state
     */
-    // if (numberOfSteps > 0) switchTurn();
+    counter += 1;
     if (hasWinner() !== null) return getScore();
+    takeMove(y, x);
     var score;
-    if ($scope.turn === CellState.X) score = -1000;
+    turn = turn === CellState.X ? CellState.O : CellState.X;
+    if (turn === $scope.human) score = -1000;
     else score = 1000;
     for (var i = 0; i < 3; i += 1) {
       for (var j = 0; j < 3; j += 1) {
         if ($scope.cells[i][j].state === CellState.Empty) {
-          takeMove(i, j);
-          var newScore = minimax();
-          if ($scope.turn === CellState.X) score = Math.min(score, newScore)
-          else score = Math.max(score, newScore)
-          takeMoveBack(i, j);
+          // takeMove(y, x);
+          var newScore = minimax(i, j, turn);
+          if (turn === $scope.human) score = Math.max(score, newScore);
+          else score = Math.min(score, newScore);
         }
       }
     }
+    takeMoveBack(y, x);
+
     return score;
   };
 
   var getScore = function() {
     var winner = hasWinner();
     if (winner !== null) {
-      if (winner.state === CellState.X) return (-10 + numberOfSteps);
-      else if (winner.state === CellState.O) return (10 - numberOfSteps);
+      if (winner.state === $scope.human) return (10 - numberOfSteps);
+      else if (winner.state !== $scope.human && winner.state !== "draw") return (-10 + numberOfSteps);
       else return 0;
     }
+    console.log("hasWinner is null");
+    return 0;
   }
 
   var switchTurn = function() {
@@ -421,7 +434,7 @@ var CellState = {
   Empty: '.'
 }
 
-var Move = function(x, y, minimaxValue) {
+var Move = function(y, x, minimaxValue) {
   this.x = x;
   this.y = y;
   this.minimaxValue = minimaxValue;
